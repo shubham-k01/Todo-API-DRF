@@ -15,18 +15,40 @@ class TodoListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         # super().create(request, *args, **kwargs)
-        serializer = self.serializer_class(data= request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            print(serializer.data)
-            create_serializer = TodoCreateSerializer(data= serializer.data)
-            if create_serializer.is_valid(raise_exception=True):
-                return Response(data= create_serializer.data)
+        tasks = request.data['tasks']
+        if tasks:
+            serializer = self.serializer_class(data=tasks,many=True )
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                print(serializer.data)
+                create_serializer = TodoCreateSerializer(data= serializer.data,many=True)
+                if create_serializer.is_valid(raise_exception=True):
+                    return Response(data= {"tasks":create_serializer.data})
+        else:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                print(serializer.data)
+                create_serializer = TodoCreateSerializer(data= serializer.data)
+                if create_serializer.is_valid(raise_exception=True):
+                    return Response(data= create_serializer.data)
             
     def get(self, request, *args, **kwargs):
         return Response(data = {
             "tasks": TodoSerializer(TodoItem.objects.all(),many = True).data
         })
+    
+    # def post(self, request, *args, **kwargs):
+
+    #   project = Project.objects.get(id=kwargs["project_id"])
+
+    #   if isinstance(request.data, list):
+    #       for item in request.data:
+    #           item["project"] = project
+    #   else:
+    #       raise ValidationError("Invalid Input")
+
+    #   return super(TaskCreateView, self).post(request, *args, **kwargs)
                     
     
 todo_list_create_view = TodoListCreateView.as_view()
@@ -91,11 +113,18 @@ class TodoRetrieveDeleteUpdateView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field ='pk'
     queryset = TodoItem.objects.all()
 
-    def delete(self, request, *args, **kwargs):
-        return super().delete(request, *args, **kwargs)
+    # def destroy(self, request, *args, **kwargs):
+    #    super().destroy(request, *args, **kwargs)
+    #    tasks = request.data['tasks']
+    #    if tasks:
+    #        serializer = self.get_serializer(data = tasks)
     
     def put(self, request, *args, **kwargs):
         super().put(request, *args, **kwargs)
         return Response(status=204)
     
 todo_retrieve_delete_update_view = TodoRetrieveDeleteUpdateView.as_view()
+
+
+class CreateDelete(generics.GenericAPIView):
+    
