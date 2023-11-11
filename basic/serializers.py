@@ -10,8 +10,6 @@ class TodoSerializer(serializers.ModelSerializer):
             'status'
         ]
 
-    def create(self, validated_data):
-        return super().create(validated_data)
 
 class TodoCreateSerializer(serializers.Serializer):
     id = serializers.IntegerField()

@@ -13,7 +13,6 @@ class TodoListCreateView(generics.ListCreateAPIView):
     serializer_class = TodoSerializer
     queryset = TodoItem.objects.all()
 
-    # doesn't work because create is called when we are creating a new object and at the time of creation of a new object id is not present . It is later added by the database
     def create(self, request, *args, **kwargs):
         # super().create(request, *args, **kwargs)
         serializer = self.serializer_class(data= request.data)
@@ -23,25 +22,12 @@ class TodoListCreateView(generics.ListCreateAPIView):
             create_serializer = TodoCreateSerializer(data= serializer.data)
             if create_serializer.is_valid(raise_exception=True):
                 return Response(data= create_serializer.data)
-
-    
-    # def perform_create(self, serializer):
-    #     super().perform_create(serializer)
-    #     serializer.save()
-    #     print(serializer.data)
-    #     print(type(serializer.data))
-    #     serialized = TodoCreateSerializer(data = serializer.data)
-    #     if serialized.is_valid(raise_exception=True):
-    #         print(serialized.data)
-    #         return Response(data={"ig":"2"})
-    #     else:
-    #         print("Hi")
-    #         return Response(data={id:2})
-    
-    
             
-
-        
+    def get(self, request, *args, **kwargs):
+        return Response(data = {
+            "tasks": TodoSerializer(TodoItem.objects.all(),many = True).data
+        })
+                    
     
 todo_list_create_view = TodoListCreateView.as_view()
 
@@ -49,6 +35,25 @@ class TodoRetrieveView(generics.RetrieveAPIView):
     serializer_class = TodoSerializer
     lookup_field = 'pk'
     queryset = TodoItem.objects.all()
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     pk = kwargs["pk"]
+    #     qs = self.get_queryset()
+    #     data = qs.filter(pk=pk).values()
+    #     print(data)
+    #     serializer = self.serializer_class(data=list(data),many = True)
+    #     serializer.is_valid(raise_exception=True)
+    #     print(serializer.data)
+    #     if data:
+    #         print(serializer.data)
+    #         return Response(data = serializer.data)
+    #     else:
+    #         return Response(data = {
+    #             "error":"There is no task at that id"
+    #         })
+
+    
+        
 
 todo_retrieve_view = TodoRetrieveView.as_view()
 
@@ -59,9 +64,13 @@ class TodoUpdateView(generics.UpdateAPIView):
 
 todo_update_view = TodoUpdateView.as_view()
 
+
 class TodoDeleteView(generics.DestroyAPIView):
     serializer_class = TodoSerializer
     lookup_field ='pk'
     queryset = TodoItem.objects.all()
+
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
 
 todo_delete_view = TodoDeleteView.as_view()
